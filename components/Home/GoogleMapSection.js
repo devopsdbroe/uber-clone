@@ -1,10 +1,12 @@
+"use client";
+
 import React from "react";
 import { GoogleMap, useJsApiLoader } from "@react-google-maps/api";
 
 const GoogleMapSection = () => {
 	const containerStyle = {
 		width: "100%",
-		height: window.innerWidth * 0.45,
+		height: typeof window !== "undefined" && window.innerWidth * 0.45,
 	};
 
 	const center = {
