@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useContext, useEffect, useState } from "react";
-import { GoogleMap, MarkerF, useJsApiLoader } from "@react-google-maps/api";
+import {
+	DirectionsRenderer,
+	DirectionsService,
+	GoogleMap,
+	MarkerF,
+	useJsApiLoader,
+} from "@react-google-maps/api";
 import { SourceContext } from "@/context/SourceContext";
 import { DestinationContext } from "@/context/DestinationContext";
 
@@ -20,6 +26,7 @@ const GoogleMapSection = () => {
 	});
 
 	const [map, setMap] = React.useState(null);
+	const [directionRoutePoints, setDirectionRoutePoints] = useState([]);
 
 	useEffect(() => {
 		if (source.length != [] && map) {
@@ -33,6 +40,10 @@ const GoogleMapSection = () => {
 				lng: source.lng,
 			});
 		}
+
+		if (source.length != [] && destination.length != []) {
+			directionRoute();
+		}
 	}, [source]);
 
 	useEffect(() => {
@@ -42,7 +53,30 @@ const GoogleMapSection = () => {
 				lng: destination.lng,
 			});
 		}
+
+		if (source.length != [] && destination.length != []) {
+			directionRoute();
+		}
 	}, [destination]);
+
+	const directionRoute = () => {
+		const directionService = new google.maps.DirectionsService();
+
+		directionService.route(
+			{
+				origin: { lat: source.lat, lng: source.lng },
+				destination: { lat: destination.lat, lng: destination.lng },
+				travelMode: google.maps.TravelMode.DRIVING,
+			},
+			(result, status) => {
+				if (status === google.maps.DirectionsStatus.OK) {
+					setDirectionRoutePoints(result);
+				} else {
+					console.error("Error");
+				}
+			}
+		);
+	};
 
 	const onLoad = React.useCallback(function callback(map) {
 		// This is just an example of getting and using the map instance!!! don't just blindly copy!
@@ -80,8 +114,17 @@ const GoogleMapSection = () => {
 					}}
 				/>
 			) : null}
-			{/* Child components, such as markers, info windows, etc. */}
-			<></>
+
+			<DirectionsRenderer
+				directions={directionRoutePoints}
+				options={{
+					suppressMarkers: true,
+					polylineOptions: {
+						strokeColor: "#000",
+						strokeWeight: 5,
+					},
+				}}
+			/>
 		</GoogleMap>
 	);
 };
